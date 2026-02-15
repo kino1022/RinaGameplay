@@ -1,25 +1,20 @@
 namespace RinaGameplay.Tag.Container {
-    
+
     public interface IGameplayTagRequirements {
         
-        bool RequirementsMet(IGameplayTagContainer container);
+        bool RequirementMet(IGameplayTagContainer tagContainer);
         
     }
     
-    public class GameplayTagRequirements : IGameplayTagRequirements {
+    public class GameplayTagRequirements {
+        
+        private IGameplayTagContainer _requireTags;
         
         private IGameplayTagContainer _ignoreTags;
         
-        private IGameplayTagContainer _requires;
-        
-        public bool RequirementsMet(IGameplayTagContainer container) {
-            if (_ignoreTags != null && container.HasAnyTags(_ignoreTags)) {
-                return false;
-            }
-            if (_requires != null && !container.HasAllTags(_requires)) {
-                return false;
-            }
-            return true;
+        public bool AreRequirementsMet(IGameplayTagContainer tagContainer) {
+            return _requireTags != null && tagContainer.HasAllTags(_requireTags) &&
+                   _ignoreTags != null && !tagContainer.HasAnyTag(_ignoreTags);
         }
     }
 }

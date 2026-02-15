@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace RinaGameplay.Tag.Container {
-
+    
     public interface IGameplayTagContainer {
         
         IReadOnlyList<GameplayTag> Tags { get; }
@@ -10,11 +10,11 @@ namespace RinaGameplay.Tag.Container {
         
         bool RemoveTag(GameplayTag tag);
         
-        bool HasTag(GameplayTag tag);
+        bool HasTag(string tag);
         
-        bool HasAllTags(IGameplayTagContainer tags);
+        bool HasAnyTag (IGameplayTagContainer other);
         
-        bool HasAnyTags(IGameplayTagContainer tags);
+        bool HasAllTags (IGameplayTagContainer other);
         
     }
     

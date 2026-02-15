@@ -1,18 +1,9 @@
-using RinaGameplay.Effect;
-
 namespace RinaGameplay.Attribute {
-
     public interface IGameplayAttribute {
         
-        void PreAttributeChange(IGameplayAttributeValue value, ref float nextValue);
-
-        void PostAttributeChange(IGameplayAttributeValue value, float oldValue, float nextValue);
+        float MaxValue { get; }
         
-        void PostGameplayEffectExecute(IGameplayAttributeValue value, GameplayEffectCallback callback);
-        
-    }
-    
-    public class GameplayAttribute {
+        float MinValue { get; }
         
     }
 }

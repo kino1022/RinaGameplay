@@ -1,168 +1,171 @@
-using System;
+using System.Collections.Generic;
+using RinaGameplay.Ability.Definition;
+using RinaGameplay.Effect;
+using RinaGameplay.Tag.Container;
+using Sirenix.OdinInspector;
+using Sirenix.Serialization;
+using UnityEngine;
 
 namespace RinaGameplay.Ability {
-
     public interface IGameplayAbility {
         
-        IGameplayAbilityDefinition Definition { get; }
+        IGameplayTagContainer AbilityTags { get; }
         
-        IGameplayAbilitySpec CurrentSpec { get; }
+        IGameplayTagContainer CancelAbilityWithTag { get; }
         
-        GameplayAbilitySystem CurrentAbilitySystem { get; }
+        IGameplayTagContainer BlockAbilityWithTag { get; }
+        
+        IGameplayTagContainer ActivationOwnedTags { get; }
+        
+        IGameplayTagRequirements ActivationRequiredTags { get; }
+        
+        IGameplayTagRequirements ActivationBlockedTags { get; }
+        
+        IReadOnlyList<IAbilityCostDefinition> CostDefinitions { get; }
+        
+        IReadOnlyList<IAbilityCoolDownDefinition> CoolDownDefinitions { get; }
+        
+        IReadOnlyList<IAbilityTask> Tasks { get; }
+        
+        AbilityInstancingPolicy InstancingPolicy { get; }
+        
+        void ActivateAbilityInternal(IGameplayAbilitySpec spec, AbilitySystemComponent asc);
+        
+        void EndAbilityInternal(IGameplayAbilitySpec spec, AbilitySystemComponent asc, bool isCancel);
 
-        bool CanActivateAbility(IGameplayAbilitySpec spec, GameplayAbilitySystem asc);
+        bool CheckCost(IGameplayAbilitySpec spec, AbilitySystemComponent asc) {
+            if (CostDefinitions.Count == 0) return true;
+            foreach (var def in CostDefinitions) {
+                if (def is null) continue;
+                if (!def.CheckCost(spec, asc)) {
+                    return false;
+                }
+            }
+            return true;
+        }
         
-        bool CheckCost(IGameplayAbilitySpec spec, GameplayAbilitySystem asc);
+        bool CheckCoolDown(IGameplayAbilitySpec spec, AbilitySystemComponent asc) {
+            if (CoolDownDefinitions.Count == 0) return true;
+            foreach (var def in CoolDownDefinitions) {
+                if (def is null) continue;
+                if (!def.CheckCoolDown(spec, asc)) {
+                    return false;
+                }
+            }
+            return true;
+        }
         
-        bool CheckCoolDown(IGameplayAbilitySpec spec, GameplayAbilitySystem asc);
-        
-        void CommitCost (IGameplayAbilitySpec spec, GameplayAbilitySystem asc);
-        
-        void CommitCoolDown (IGameplayAbilitySpec spec, GameplayAbilitySystem asc);
-        
-        bool CommitAbility (IGameplayAbilitySpec spec, GameplayAbilitySystem asc);
-        
-        void ActivateAbility (IGameplayAbilitySpec spec, GameplayAbilitySystem asc);
-        
-        void EndAbility (bool wasCancelled);
+        void CommitCost(IGameplayAbilitySpec spec, AbilitySystemComponent asc) {
+            foreach (var def in CostDefinitions) {
+                if (def is null) continue;
+                def.CommitCost(spec, asc);
+            }
+        }
 
+        void CommitCoolDown(IGameplayAbilitySpec spec, AbilitySystemComponent asc) {
+            foreach (var def in CoolDownDefinitions) {
+                if (def is null) continue;
+                    def.CommitCoolDown(spec, asc);
+            }
+        }
+
+        IActiveGameplayAbility CreateInstance();
+
+    }
+
+    public interface IAbilityCostDefinition {
+        
+        bool CheckCost (IGameplayAbilitySpec spec, AbilitySystemComponent asc);
+        
+        void CommitCost (IGameplayAbilitySpec spec, AbilitySystemComponent asc);
+        
     }
     
-    public class GameplayAbility : IGameplayAbility {
+    public interface IAbilityCoolDownDefinition {
         
-        private IGameplayAbilityDefinition _definition;
-
-        private IGameplayAbilitySpec _currentSpec;
+        bool CheckCoolDown (IGameplayAbilitySpec spec, AbilitySystemComponent asc);
         
-        private GameplayAbilitySystem _currentAbilitySystem;
+        void CommitCoolDown (IGameplayAbilitySpec spec, AbilitySystemComponent asc);
         
-        public IGameplayAbilityDefinition Definition => _definition;
-        
-        public IGameplayAbilitySpec CurrentSpec => _currentSpec;
-        
-        public GameplayAbilitySystem CurrentAbilitySystem => _currentAbilitySystem;
-
-        public GameplayAbility(IGameplayAbilityDefinition definition) {
-            _definition = definition ?? throw new ArgumentNullException();
-        }
-        
-        public bool CanActivateAbility (IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            if (!Definition.ActivationRequirements.RequirementsMet(asc.TagContainer)) {
-                return false;
-            }
-            if (!Definition.ActivationBlockers.RequirementsMet(asc.TagContainer)) {
-                return false;
-            }
-
-            if (Definition.ActivateConditions.Count is not 0) {
-                foreach (var condition in Definition.ActivateConditions) {
-                    if (condition is null) {
-                        continue;
-                    }
-                    if (!condition.ActivateCondition(spec, asc)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        public bool CheckCost(IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            if (Definition.CostDefinitions.Count is 0) {
-                return true;
-            }
-            foreach (var cost in Definition.CostDefinitions) {
-                if (cost is null) {
-                    continue;
-                }
-                if (!cost.CheckCost(spec, asc)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public bool CheckCoolDown(IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            if (Definition.CoolDownDefinitions.Count is 0) {
-                return true;
-            }
-
-            foreach (var cooldown in Definition.CoolDownDefinitions) {
-                if (cooldown is null) {
-                    continue;
-                }
-                if (!cooldown.CheckCoolDown(spec, asc)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public void CommitCost(IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            if (Definition.CostDefinitions.Count is 0) {
-                return;
-            }
-            foreach (var cost in Definition.CostDefinitions) {
-                if (cost is null) {
-                    continue;
-                }
-                cost.CommitCost(spec, asc);
-            }
-        }
-
-        public void CommitCoolDown(IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            if (Definition.CoolDownDefinitions.Count is 0) {
-                return;
-            }
-            foreach (var cooldown in Definition.CoolDownDefinitions) {
-                if (cooldown is null) {
-                    continue;
-                }
-                cooldown.CommitCoolDown(spec, asc);
-            }
-        }
-
-        public bool CommitAbility(IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            if (!CheckCost(spec, asc) || !CheckCoolDown(spec, asc)) {
-                return false;
-            }
-            CommitCost(spec, asc);
-            CommitCoolDown(spec, asc);
-            return true;
-        }
-
-        public void ActivateAbility(IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            SetCurrentContext(spec, asc);
-            spec.SetIsActive(true);
-            foreach (var tag in Definition.ActivationOwnedTags.Tags) {
-                asc.TagContainer.AddTag(tag);
-            }
-            Definition.ActivationAbilityInternal(spec, asc);
-        }
-
-        public void EndAbility(bool wasCancelled = false) {
-            if (_currentSpec is null && _currentAbilitySystem is null) {
-                return;
-            }
-            CurrentSpec.SetIsActive(false);
-            foreach (var tag in Definition.ActivationOwnedTags.Tags) {
-                _currentAbilitySystem.TagContainer.RemoveTag(tag);
-            }
-            Definition.EndAbilityInternal(CurrentSpec, CurrentAbilitySystem, wasCancelled);
-            SetCurrentContext(null, null);
-        }
-
-        private void SetCurrentContext(IGameplayAbilitySpec spec, GameplayAbilitySystem asc) {
-            SetCurrentSpec(spec);
-            SetCurrentAbilitySystem(asc);
-        }
-        
-        private void SetCurrentSpec(IGameplayAbilitySpec spec) {
-            _currentSpec = spec;
-        }
-        
-        private void SetCurrentAbilitySystem(GameplayAbilitySystem asc) {
-            _currentAbilitySystem = asc;
-        }
     }
+
+    public abstract class GameplayAbility : SerializedScriptableObject {
+
+        [OdinSerialize]
+        [LabelText("アビリティタグ")]
+        [Tooltip("アビリティ自体に付与されるタグ")]
+        protected IGameplayTagContainer _abilityTags;
+
+        [OdinSerialize]
+        [LabelText("アビリティキャンセルタグ")]
+        [Tooltip("このタグが付与されたアビリティは、このアビリティによってキャンセルされる")]
+        protected IGameplayTagContainer _cancelAbilityWithTag;
+
+        [OdinSerialize]
+        [LabelText("アビリティブロックタグ")]
+        [Tooltip("このタグが付与されたアビリティは、このアビリティによってブロックされる")]
+        protected IGameplayTagContainer _blockAbilityWithTag;
+
+        [OdinSerialize]
+        [LabelText("アクティブ時付与タグ")]
+        [Tooltip("アビリティがアクティブな間に付与されるタグ")]
+        protected IGameplayTagContainer _activationOwnedTags;
+
+        [OdinSerialize]
+        [LabelText("アクティベーション必要タグ")]
+        [Tooltip("アビリティをアクティベートするために必要なタグ")]
+        protected IGameplayTagRequirements _activationRequiredTags;
+
+        [OdinSerialize]
+        [LabelText("アクティベーションブロックタグ")]
+        [Tooltip("このタグが付与されたアビリティは、このアビリティによってブロックされる")]
+        protected IGameplayTagRequirements _activationBlockedTags;
+
+        [OdinSerialize]
+        [LabelText("コストの定義")]
+        protected List<IAbilityCostDefinition> _costDefinitions = new List<IAbilityCostDefinition>();
+
+        [OdinSerialize]
+        [LabelText("クールダウンの定義")]
+        protected List<IAbilityCoolDownDefinition> _coolDownDefinitions = new List<IAbilityCoolDownDefinition>();
+
+        [OdinSerialize]
+        [LabelText("タスク")]
+        protected List<IAbilityTask> _tasks = new List<IAbilityTask>();
+
+        [OdinSerialize]
+        [LabelText("インスタンス化ポリシー")]
+        protected AbilityInstancingPolicy _instancingPolicy = AbilityInstancingPolicy.NonInstance;
+
+        public IGameplayTagContainer AbilityTags => _abilityTags;
+
+        public IGameplayTagContainer CancelAbilityWithTag => _cancelAbilityWithTag;
+
+        public IGameplayTagContainer BlockAbilityWithTag => _blockAbilityWithTag;
+
+        public IGameplayTagContainer ActivationOwnedTags => _activationOwnedTags;
+
+        public IGameplayTagRequirements ActivationRequiredTags => _activationRequiredTags;
+
+        public IGameplayTagRequirements ActivationBlockedTags => _activationBlockedTags;
+
+        public IReadOnlyList<IAbilityCostDefinition> CostDefinitions => _costDefinitions;
+
+        public IReadOnlyList<IAbilityCoolDownDefinition> CoolDownDefinitions => _coolDownDefinitions;
+
+        public IReadOnlyList<IAbilityTask> Tasks => _tasks;
+
+        public AbilityInstancingPolicy InstancingPolicy => _instancingPolicy;
+
+        public virtual void ActivateAbilityInternal(IGameplayAbilitySpec spec, AbilitySystemComponent asc) {
+            // デフォルトの実装はなし。必要に応じてオーバーライドして使用。
+        }
+        
+        public virtual void EndAbilityInternal(IGameplayAbilitySpec spec, AbilitySystemComponent asc, bool isCancel) {
+            // デフォルトの実装はなし。必要に応じてオーバーライドして使用。
+        }
+        
+        public abstract IActiveGameplayAbility CreateInstance();
+    }
+    
 }
