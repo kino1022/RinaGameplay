@@ -21,4 +21,24 @@ namespace RinaGameplay.Modifier.Definition {
         /// </summary>
         Override,
     }
+
+    public static class GameplayModifierOperatorExtensions {
+        
+        public static float ApplyOperator (this GameplayModifierOperator op, float baseValue, float modValue) {
+            if (op == GameplayModifierOperator.Additive) {
+                return baseValue + modValue;
+            }
+            else if (op == GameplayModifierOperator.Multiplicative) {
+                return baseValue * modValue;
+            }
+            else if (op == GameplayModifierOperator.Division) {
+                return baseValue / modValue;
+            }
+            else if (op == GameplayModifierOperator.Override) {
+                return modValue;
+            }
+
+            return baseValue;
+        }
+    }
 }
