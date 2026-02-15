@@ -29,7 +29,7 @@ namespace RinaGameplay.Effect.Container {
 
     }
 
-    public class ActiveGameplayEffectContainer {
+    public class ActiveGameplayEffectContainer : IActiveGameplayEffectContainer {
 
         private readonly AbilitySystemComponent _owner;
 
@@ -84,6 +84,10 @@ namespace RinaGameplay.Effect.Container {
             return activeEffect.Handle;
         }
 
+        /// <summary>
+        /// 即時発動する効果を実行する
+        /// </summary>
+        /// <param name="spec"></param>
         private void ExecuteInstantEffect(IGameplayEffectSpec spec) {
             spec.RecalculateModifiers(_owner);
             foreach (var eval in spec.EvaluatedModifiers) {
@@ -98,6 +102,10 @@ namespace RinaGameplay.Effect.Container {
             }
         }
 
+        /// <summary>
+        /// 周期的な効果を実行する
+        /// </summary>
+        /// <param name="effect"></param>
         private void ExecutePeriodicEffect(IActiveGameplayEffect effect) {
             ExecuteInstantEffect(effect.Spec);
         }
@@ -118,7 +126,7 @@ namespace RinaGameplay.Effect.Container {
         }
 
         private ActiveGameplayEffectHandle HandleStacking(IActiveGameplayEffect effect, IGameplayEffectSpec spec) {
-
+            
         }
 
         private void ApplyModifierToTarget(IActiveGameplayEffect effect, IGameplayEffectSpec spec) {
@@ -135,6 +143,6 @@ namespace RinaGameplay.Effect.Container {
 
         private float ApplyModifierOperationToTarget(float baseValue, float magnitude, GameplayModifierOperator op) {
             return op.ApplyOperator(baseValue, magnitude);
-        } 
+        }
     }
 }
