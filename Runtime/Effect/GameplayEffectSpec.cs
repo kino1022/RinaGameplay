@@ -20,22 +20,22 @@ namespace RinaGameplay.Effect {
         /// <summary>
         /// GameplayEffectの効果レベル
         /// </summary>
-        float Level { get; }
+        float Level { get; set; }
         
         /// <summary>
         /// 効果の持続時間
         /// </summary>
-        float Duration { get; }
+        float Duration { get; set; }
         
         /// <summary>
         /// 効果の発動周期
         /// </summary>
-        float Period { get; }
+        float Period { get; set; }
         
         /// <summary>
         /// 現在のスタック数
         /// </summary>
-        int StackCount { get; }
+        int StackCount { get; set; }
         
         IReadOnlyList<EvaluatedModifier> EvaluatedModifiers { get; }
         
@@ -86,13 +86,13 @@ namespace RinaGameplay.Effect {
         
         public GameplayEffectContextHandle Handle => _handle;
         
-        public float Level { get; protected set; }
+        public float Level { get; set; }
         
-        public float Duration { get; protected set; }
+        public float Duration { get; set; }
         
-        public float Period { get; protected set; }
+        public float Period { get; set; }
         
-        public int StackCount { get; protected set; }
+        public int StackCount { get; set; }
         
         public IReadOnlyList<EvaluatedModifier> EvaluatedModifiers => _evaluatedModifiers;
 

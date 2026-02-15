@@ -14,7 +14,7 @@ namespace RinaGameplay.Effect {
         
         float PeriodElapsed { get; }
         
-        IReadOnlyList<ActiveModifier> AppliedModifiers { get; }
+        List<ActiveModifier> AppliedModifiers { get; }
         
         void SetStartTime(float time);
         
@@ -61,7 +61,7 @@ namespace RinaGameplay.Effect {
         
         public float PeriodElapsed => _periodElapsed;
         
-        public IReadOnlyList<ActiveModifier> AppliedModifiers => _appliedModifiers;
+        public List<ActiveModifier> AppliedModifiers => _appliedModifiers;
 
         public ActiveGameplayEffect(IGameplayEffectSpec spec) {
             _spec = spec;

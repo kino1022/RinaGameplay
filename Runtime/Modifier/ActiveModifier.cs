@@ -14,6 +14,13 @@ namespace RinaGameplay.Modifier {
         
         public readonly ActiveGameplayEffectHandle SourceEffectHandle;
         
+        public ActiveModifier(IGameplayAttribute target, GameplayModifierOperator op, float magnitude, ActiveGameplayEffectHandle sourceEffectHandle) {
+            Target = target;
+            Operator = op;
+            EvaluatedMagnitude = magnitude;
+            SourceEffectHandle = sourceEffectHandle;
+        }
+        
     }
 
     public static class ActiveModifierExtensions {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using RinaGameplay.Effect.Definition;
 using RinaGameplay.Effect.Exception;
+using RinaGameplay.Modifier;
 using RinaGameplay.Modifier.Definition;
 using UnityEngine;
 
@@ -84,6 +85,18 @@ namespace RinaGameplay.Effect.Container {
             return activeEffect.Handle;
         }
 
+        public bool RemoveActiveGameplayEffect(ActiveGameplayEffectHandle handle) {
+            if (!_handleToEffectMap.TryGetValue(handle.GetHashCode(), out var effect)) {
+                return false;
+            }
+
+            RemoveModifierFromTarget(effect);
+            RemoveGrantedTags(effect.Spec);
+            _effects.Remove(effect);
+            _handleToEffectMap.Remove(handle.GetHashCode());
+            return true;
+        }
+
         /// <summary>
         /// 即時発動する効果を実行する
         /// </summary>
@@ -126,23 +139,67 @@ namespace RinaGameplay.Effect.Container {
         }
 
         private ActiveGameplayEffectHandle HandleStacking(IActiveGameplayEffect effect, IGameplayEffectSpec spec) {
-            
+            if (effect.Spec.Definition.StackingDef.MaxStack > 0 &&
+                effect.Spec.StackCount >= effect.Spec.Definition.StackingDef.MaxStack) {
+                return effect.Handle;
+            }
+
+            effect.Spec.StackCount++;
+            if (effect.Spec.Definition.StackingDef.OnStackDuration == EffectStackingDurationPolicy.RefreshOnStack) {
+                effect.SetStartTime(Time.time);
+            }
+
+            if (effect.Spec.Definition.StackingDef.OnStackPeriod == EffectStackingPeriodPolicy.RefreshOnStack) {
+                effect.SetPeriodElapsed(0.0f);
+            }
+            return effect.Handle;
         }
 
         private void ApplyModifierToTarget(IActiveGameplayEffect effect, IGameplayEffectSpec spec) {
+            foreach (var eval in spec.EvaluatedModifiers) {
+                var attribute = _owner.AttributeSet.GetAttributeValue(eval.Attribute);
+                if (attribute is null) {
+                    continue;
+                }
 
+                var activeModifier = new ActiveModifier(eval.Attribute, eval.Operator, eval.Magnitude, effect.Handle);
+                attribute.AddModifier(ref activeModifier);
+                effect.AppliedModifiers.Add(activeModifier);
+            }
         }
 
         private void ApplyGrantedTags(IGameplayEffectSpec spec) {
-
+            foreach (var tag in spec.Definition.GrantTags.Tags) {
+                _owner.Tags.AddTag(tag);
+            }
         }
 
         private void ApplyGrantedAbilities(IGameplayEffectSpec spec) {
-
+            foreach (var ability in spec.Definition.GrantedAbilities) {
+                
+            }
         }
 
         private float ApplyModifierOperationToTarget(float baseValue, float magnitude, GameplayModifierOperator op) {
             return op.ApplyOperator(baseValue, magnitude);
         }
+
+        private void RemoveModifierFromTarget(IActiveGameplayEffect effect) {
+            for (int i = 0; i < effect.AppliedModifiers.Count; i++) {
+                var mod = effect.AppliedModifiers[i];
+                var attribute = _owner.AttributeSet.GetAttributeValue(mod.Target);
+                if (attribute is null) {
+                    continue;
+                }
+                attribute.RemoveModifier(ref mod);
+            }
+        }
+        
+        private void RemoveGrantedTags(IGameplayEffectSpec spec) {
+            foreach (var tag in spec.Definition.GrantTags.Tags) {
+                _owner.Tags.RemoveTag(tag);
+            }
+        }
+        
     }
 }
