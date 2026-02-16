@@ -8,6 +8,6 @@ namespace RinaGameplay.Attribute {
         /// <param name="attribute"></param>
         /// <returns></returns>
         IGameplayAttributeValue GetAttributeValue(IGameplayAttribute attribute);
-        
+
     }
 }

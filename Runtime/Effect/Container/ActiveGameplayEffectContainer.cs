@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RinaGameplay.Ability;
 using RinaGameplay.Effect.Definition;
 using RinaGameplay.Effect.Exception;
 using RinaGameplay.Modifier;
@@ -176,7 +177,9 @@ namespace RinaGameplay.Effect.Container {
 
         private void ApplyGrantedAbilities(IGameplayEffectSpec spec) {
             foreach (var ability in spec.Definition.GrantedAbilities) {
-                
+                if (ability is null) continue;
+                var abSpec = new GameplayAbilitySpec(ability);
+                _owner.ActiveAbilities.GiveAbility(abSpec);
             }
         }
 
