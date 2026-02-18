@@ -5,5 +5,10 @@ namespace RinaGameplay.Attribute {
         
         float MinValue { get; }
         
+        /// <summary>
+        /// 識別用のハッシュ値。
+        /// </summary>
+        int Hash { get; }
+        
     }
 }
