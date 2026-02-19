@@ -43,6 +43,10 @@ namespace RinaGameplay.Ability {
         public ActiveGameplayAbility(IGameplayAbility def) {
             Definition = def;
         }
+
+        private void Update() {
+            
+        }
         
         public void ActivateAbility (IGameplayAbilitySpec spec, AbilitySystemComponent asc) {
             SetCurrentState(spec, asc);

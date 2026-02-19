@@ -89,7 +89,7 @@ namespace RinaGameplay.Ability {
         
     }
 
-    public abstract class GameplayAbility : SerializedScriptableObject {
+    public abstract class GameplayAbility : SerializedScriptableObject, IGameplayAbility {
 
         [OdinSerialize]
         [LabelText("アビリティタグ")]
