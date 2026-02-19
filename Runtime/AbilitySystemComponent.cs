@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RinaGameplay.Ability;
 using RinaGameplay.Ability.Container;
@@ -6,6 +7,7 @@ using RinaGameplay.Effect.Container;
 using RinaGameplay.Tag.Container;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
+using UnityEngine;
 
 namespace RinaGameplay {
     public class AbilitySystemComponent : SerializedMonoBehaviour {
@@ -53,6 +55,10 @@ namespace RinaGameplay {
         private void Start() {
             AbilitiesInitialize();
             AttributesInitialize();
+        }
+
+        private void Update() {
+            _effects.Tick(Time.deltaTime);
         }
 
         private void AbilitiesInitialize() {

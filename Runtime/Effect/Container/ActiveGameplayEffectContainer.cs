@@ -14,6 +14,8 @@ namespace RinaGameplay.Effect.Container {
         /// このコンテナに格納されているアクティブなGameplayEffectのリスト
         /// </summary>
         IReadOnlyList<IActiveGameplayEffect> Effects { get; }
+        
+        void Tick (float deltaTime);
 
         /// <summary>
         /// GameplayEffectSpecをもとにして、GameplayEffectをこのコンテナに対して適応する
@@ -39,12 +41,37 @@ namespace RinaGameplay.Effect.Container {
 
         private Dictionary<int, IActiveGameplayEffect> _handleToEffectMap;
 
+        private List<IActiveGameplayEffect> _removeEffects = new();
+
         public IReadOnlyList<IActiveGameplayEffect> Effects => _effects;
 
         public ActiveGameplayEffectContainer(AbilitySystemComponent owner) {
             _owner = owner;
             _effects = new List<IActiveGameplayEffect>();
             _handleToEffectMap = new Dictionary<int, IActiveGameplayEffect>();
+        }
+
+        public void Tick(float deltaTime) {
+            float currentTime = Time.time;
+            _removeEffects.Clear();
+            for (int i = _effects.Count -1; i >= 0; i--) {
+                var effect = _effects[i];
+                effect.SetPeriodElapsed(effect.PeriodElapsed + deltaTime);
+                if (effect.ShouldExecutePeriodicEffect(Time.time)) {
+                    ExecutePeriodicEffect(effect);
+                }
+                if (effect.IsExpired(currentTime)) {
+                    _effects.Remove(effect);
+                }
+
+                if (!effect.Spec.Definition.OnGoingRequirements.RequirementMet(_owner.Tags)) {
+                    _removeEffects.Add(effect);
+                }
+            }
+
+            foreach (var effect in _removeEffects) {
+                RemoveActiveGameplayEffect(effect.Handle);
+            }
         }
 
         public ActiveGameplayEffectHandle ApplyGameplayEffectSpec(IGameplayEffectSpec spec) {
