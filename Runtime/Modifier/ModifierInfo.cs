@@ -2,18 +2,27 @@ using RinaGameplay.Attribute;
 using RinaGameplay.Effect;
 using RinaGameplay.Modifier.Definition;
 using RinaGameplay.Tag.Container;
+using Sirenix.Serialization;
+using UnityEngine;
 
 namespace RinaGameplay.Modifier {
+    [System.Serializable]
     public class ModifierInfo {
-        public IGameplayAttribute Attribute;
         
-        public GameplayModifierOperator Operator;
+        [OdinSerialize]
+        public IGameplayAttribute Attribute;
 
+        [SerializeField]
+        public GameplayModifierOperator Operator = GameplayModifierOperator.Additive;
+
+        [OdinSerialize]
         public IGameplayEffectMagnitudeCalculator Magnitude;
         
-        public IGameplayTagRequirements SourceRequiredTags;
+        [OdinSerialize]
+        public IGameplayTagRequirements SourceRequiredTags = new GameplayTagRequirements();
         
-        public IGameplayTagRequirements TargetRequiredTags;
+        [OdinSerialize]
+        public IGameplayTagRequirements TargetRequiredTags = new GameplayTagRequirements();
         
     }
 }

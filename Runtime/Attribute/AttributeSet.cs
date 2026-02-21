@@ -37,10 +37,6 @@ namespace RinaGameplay.Attribute {
         [ReadOnly]
         private Dictionary<int, IGameplayAttributeValue> _hashToAttributeValueMap = new();
 
-        public AttributeSet() {
-            
-        }
-
         public IGameplayAttributeValue GetAttributeValue(IGameplayAttribute attribute) {
             if (!_hashToAttributeValueMap.TryGetValue(attribute.Hash, out var value)) {
                 return null;
