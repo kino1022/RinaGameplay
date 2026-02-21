@@ -42,6 +42,8 @@ namespace RinaGameplay.Effect.Container {
         private Dictionary<int, IActiveGameplayEffect> _handleToEffectMap;
 
         private List<IActiveGameplayEffect> _removeEffects = new();
+        
+        private List<IActiveGameplayEffect> _willPeriodicEffects = new();
 
         public IReadOnlyList<IActiveGameplayEffect> Effects => _effects;
 
@@ -57,24 +59,32 @@ namespace RinaGameplay.Effect.Container {
             for (int i = _effects.Count -1; i >= 0; i--) {
                 var effect = _effects[i];
                 effect.SetPeriodElapsed(effect.PeriodElapsed + deltaTime);
+                //周期的効果の発動条件を満たすGameplayEffectをwillPeriodicEffectsリストに加える
                 if (effect.ShouldExecutePeriodicEffect(Time.time)) {
-                    ExecutePeriodicEffect(effect);
+                    _willPeriodicEffects.Add(effect);
                 }
+                //効果時間が切れたGameplayEffectを除去列に加え入れる
                 if (effect.IsExpired(currentTime)) {
                     _effects.Remove(effect);
                 }
+            }
 
-                if (!effect.Spec.Definition.OnGoingRequirements.RequirementMet(_owner.Tags)) {
-                    _removeEffects.Add(effect);
-                }
+            foreach (var effect in _willPeriodicEffects) {
+                ExecutePeriodicEffect(effect);
             }
 
             foreach (var effect in _removeEffects) {
                 RemoveActiveGameplayEffect(effect.Handle);
             }
+            
         }
 
         public ActiveGameplayEffectHandle ApplyGameplayEffectSpec(IGameplayEffectSpec spec) {
+
+            if (!spec.Definition.ApplicationRequirements.RequirementMet(_owner.Tags)) {
+                return ActiveGameplayEffectHandle.InValid;
+            }
+            
             if (!spec.Definition.CanApply(_owner.Tags)) {
                 return ActiveGameplayEffectHandle.InValid;
             }
@@ -130,6 +140,10 @@ namespace RinaGameplay.Effect.Container {
         /// </summary>
         /// <param name="spec"></param>
         private void ExecuteInstantEffect(IGameplayEffectSpec spec) {
+
+            if (!spec.Definition.OnGoingRequirements.RequirementMet(_owner.Tags)) {
+                return;
+            }
             spec.RecalculateModifiers(_owner);
             foreach (var eval in spec.EvaluatedModifiers) {
                 var attribute = _owner.AttributeSet.GetAttributeValue(eval.Attribute);

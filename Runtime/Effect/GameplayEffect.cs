@@ -3,6 +3,8 @@ using RinaGameplay.Ability;
 using RinaGameplay.Effect.Definition;
 using RinaGameplay.Modifier;
 using RinaGameplay.Tag.Container;
+using Sirenix.OdinInspector;
+using Sirenix.Serialization;
 
 namespace RinaGameplay.Effect {
 
@@ -36,10 +38,19 @@ namespace RinaGameplay.Effect {
         /// </summary>
         IGameplayTagContainer GrantTags { get; }
         
+        /// <summary>
+        /// 適用先のタグの状態によって適用できるかどうかを判断する条件
+        /// </summary>
         IGameplayTagRequirements ApplicationRequirements { get; }
         
+        /// <summary>
+        /// このタグがついている間はGameplayEffectの効果が継続できる
+        /// </summary>
         IGameplayTagRequirements OnGoingRequirements { get; }
         
+        /// <summary>
+        /// 付与されている間にこのタグが付与されると、GameplayEffectが解除される
+        /// </summary>
         IGameplayTagRequirements RemovalRequirements { get; }
         
         /// <summary>
@@ -111,5 +122,59 @@ namespace RinaGameplay.Effect {
         float GetPeriod(IGameplayEffectSpec spec);
         
     }
-    
+
+    public abstract class GameplayEffect : SerializedScriptableObject, IGameplayEffect {
+        
+        [OdinSerialize]
+        protected IGameplayEffectDurationDefinition _durationDef;
+        
+        [OdinSerialize]
+        protected IGameplayEffectPeriodicDefinition _periodDef;
+        
+        [OdinSerialize]
+        protected IGameplayEffectStackingDefinition _stackingDef;
+        
+        [OdinSerialize]
+        protected List<ModifierInfo> _modifiers = new List<ModifierInfo>();
+        
+        [OdinSerialize]
+        protected IGameplayTagContainer _grantTags = new GameplayTagContainer();
+        
+        [OdinSerialize]
+        protected IGameplayTagRequirements _applicationRequirements = new GameplayTagRequirements();
+
+        [OdinSerialize]
+        protected IGameplayTagRequirements _onGoingRequirements = new GameplayTagRequirements();
+        
+        [OdinSerialize]
+        protected IGameplayTagRequirements _removalRequirements = new GameplayTagRequirements();
+        
+        [OdinSerialize]
+        protected List<IGameplayAbility> _grantedAbilities = new List<IGameplayAbility>();
+        
+        public IGameplayEffectDurationDefinition DurationDef => _durationDef;
+        
+        public IGameplayEffectPeriodicDefinition PeriodicDef => _periodDef;
+        
+        public IGameplayEffectStackingDefinition StackingDef => _stackingDef;
+        
+        public IReadOnlyList<ModifierInfo> Modifiers => _modifiers;
+        
+        public IGameplayTagContainer GrantTags => _grantTags;
+        
+        public IGameplayTagRequirements ApplicationRequirements => _applicationRequirements;
+        
+        public IGameplayTagRequirements OnGoingRequirements => _onGoingRequirements;
+        
+        public IGameplayTagRequirements RemovalRequirements => _removalRequirements;
+
+        public IReadOnlyList<IGameplayAbility> GrantedAbilities => _grantedAbilities;
+
+        public bool CanApply(IGameplayTagContainer container) {
+            if (!_applicationRequirements.RequirementMet(container)) {
+                return false;
+            }
+            return true;
+        }
+    }
 }

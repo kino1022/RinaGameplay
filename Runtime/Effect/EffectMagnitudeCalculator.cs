@@ -1,4 +1,5 @@
 using System;
+using Sirenix.Serialization;
 
 namespace RinaGameplay.Effect {
 
@@ -21,6 +22,7 @@ namespace RinaGameplay.Effect {
     [Serializable]
     public struct ScalableFloatMagnitudeCalculator : IGameplayEffectMagnitudeCalculator {
         
+        [OdinSerialize]
         public IScalableFloat ScalableFloat { get; set; }
 
         public float CalculateMagnitude(
