@@ -57,6 +57,15 @@ namespace RinaGameplay.Ability {
                 _taskContainer.ActivateAllTask(this);
             }
             ApplyGrantedTags(asc);
+            foreach (var ability in asc.ActiveAbilities.ActiveAbilities) {
+                if (ability is null) {
+                    continue;
+                }
+                
+                if (Definition.CancelAbilityWithTag.HasAnyTag(ability.Definition.AbilityTags)) {
+                    asc.ActiveAbilities.CancelAbility(ability.Handle);
+                }
+            }
             Definition.ActivateAbilityInternal(CurrentSpec, CurrentActor);
         }
 

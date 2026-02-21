@@ -5,6 +5,8 @@ namespace RinaGameplay.Ability.Container {
     public interface IActiveAbilityContainer {
         
         IReadOnlyList<IGameplayAbilitySpec> ActiveAbilities { get; }
+        
+        void Tick (float deltaTime);
 
         bool TryActivateAbility(GameplayAbilitySpecHandle handle);
         
@@ -28,6 +30,12 @@ namespace RinaGameplay.Ability.Container {
 
         public ActiveAbilityContainer(AbilitySystemComponent owner) {
             _owner = owner;
+        }
+
+        public void Tick(float deltaTime) {
+            foreach (var spec in _abilities) {
+
+            }
         }
 
         public GameplayAbilitySpecHandle GiveAbility(IGameplayAbilitySpec spec) {

@@ -80,7 +80,7 @@ namespace RinaGameplay.Ability {
         void CommitCost (IGameplayAbilitySpec spec, AbilitySystemComponent asc);
         
     }
-    
+
     public interface IAbilityCoolDownDefinition {
         
         bool CheckCoolDown (IGameplayAbilitySpec spec, AbilitySystemComponent asc);
