@@ -5,6 +5,7 @@ using RinaGameplay.Modifier;
 using RinaGameplay.Tag.Container;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
+using UnityEngine;
 
 namespace RinaGameplay.Effect {
 
@@ -123,7 +124,8 @@ namespace RinaGameplay.Effect {
         
     }
 
-    public abstract class GameplayEffect : SerializedScriptableObject, IGameplayEffect {
+    [CreateAssetMenu(menuName = "RinaGameplay/GameplayEffect")]
+    public class GameplayEffect : SerializedScriptableObject, IGameplayEffect {
         
         [OdinSerialize]
         protected IGameplayEffectDurationDefinition _durationDef;

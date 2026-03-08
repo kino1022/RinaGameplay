@@ -13,10 +13,19 @@ namespace RinaGameplay.Attribute {
         /// </summary>
         int Hash { get; }
         
+        void OnPostBaseValueChanged (float oldValue, float newValue);
+        
+        float OnPreBaseValueChanged (float oldValue, float newValue);
+
+        float OnPreBaseValueChangeFromModifier(float oldValue, float nextValue, IGameplayAttributeValue attributeValue);
+        
+        void OnPostBaseValueChangeFromModifier(float oldValue, IGameplayAttributeValue attributeValue);
+
     }
 
     public class GameplayAttribute : SerializedScriptableObject, IGameplayAttribute {
 
+        
         [SerializeField]
         protected float _minValue = 0.0f;
         
@@ -36,6 +45,24 @@ namespace RinaGameplay.Attribute {
                 }
                 return _cacheHash.Value;
             }
+        }
+        
+        public virtual void OnPostBaseValueChanged(float oldValue, float newValue) {
+            // デフォルトでは何もしない
+        }
+        
+        public virtual float OnPreBaseValueChanged(float oldValue, float newValue) {
+            // デフォルトでは変更をそのまま許可する
+            return newValue;
+        }
+        
+        public virtual float OnPreBaseValueChangeFromModifier(float oldValue, float nextValue, IGameplayAttributeValue attributeValue) {
+            // デフォルトでは変更をそのまま許可する
+            return nextValue;
+        }
+
+        public virtual void OnPostBaseValueChangeFromModifier(float oldValue, IGameplayAttributeValue attributeValue) {
+            // デフォルトでは何もしない
         }
     }
 }

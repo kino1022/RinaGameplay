@@ -47,7 +47,9 @@ namespace RinaGameplay.Attribute {
         }
 
         public void SetBaseValue(float nextValue) {
-            _baseValue.Value = Mathf.Clamp(nextValue, Definition.MinValue, Definition.MaxValue);
+            var next = Definition.OnPreBaseValueChanged(_baseValue.Value, nextValue);
+            _baseValue.Value = Mathf.Clamp(next, Definition.MinValue, Definition.MaxValue);
+            Definition.OnPostBaseValueChanged(_baseValue.Value, nextValue);
             RecalculateCurrentValue();
         }
 
@@ -69,8 +71,11 @@ namespace RinaGameplay.Attribute {
         }
 
         private void RecalculateCurrentValue() {
+            var oldValue = _currentValue.Value;
             var next = _activeModifiers.ApplyActiveModifiers(_baseValue.CurrentValue);
+                next = Definition.OnPreBaseValueChangeFromModifier(_currentValue.Value, next, this);
             _currentValue.Value = Mathf.Clamp(next, Definition.MinValue, Definition.MaxValue);
+                Definition.OnPostBaseValueChangeFromModifier(oldValue, this);
         }
         
     }
